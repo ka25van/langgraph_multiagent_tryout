@@ -2,9 +2,11 @@ import express from 'express';
 import app from './graph.js';
 const server = express();
 const PORT =  3000;
+import cors from 'cors';
 
 // Middleware
 server.use(express.json());
+server.use(cors())
 server.use(express.urlencoded({ extended: true }));
 
 // Basic route
@@ -22,6 +24,7 @@ server.get('/', (req, res) => {
 server.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
+    console.log("Message", message)
     
     if (!message) {
       return res.status(400).json({ 

@@ -1,8 +1,8 @@
 {
-  "name": "langgraph_tryout",
+  "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "type":"module",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -17,6 +17,7 @@
     "@langchain/langgraph": "^0.3.6",
     "@langchain/ollama": "^0.2.3",
     "axios": "^1.10.0",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "langchain": "^0.3.29",
     "winston": "^3.17.0"
