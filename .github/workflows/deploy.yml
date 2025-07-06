@@ -1,0 +1,68 @@
+name: Testing Langgraph_tryout deployment
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  frontend:
+    name: Deploy Frontend to S3
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Deploy to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read --delete
+        env:
+          AWS_S3_BUCKET: langgraph-frontend-kaverappa
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: "frontend/build"
+
+  backend:
+    name: Deploy Backend to EC2
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Zip backend files
+        run: zip -r backend.zip .
+
+      - name: Copy to EC2
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+          scp -o StrictHostKeyChecking=no -i key.pem backend.zip ${{ ubuntu }}@${{ secrets.EC2_HOST }}:/home/${{ ubuntu }}/
+
+      - name: SSH and deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ ubuntu }}@${{ secrets.EC2_HOST }} << 'EOF'
+            unzip -o backend.zip -d backend
+            cd backend
+            npm install
+            pkill node || true
+            nohup npm start &
+          EOF
