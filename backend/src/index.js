@@ -6,7 +6,15 @@ import cors from 'cors';
 
 // Middleware
 server.use(express.json());
+
 server.use(cors({
+  origin: 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+
+//Add this for preflight
+server.options('*', cors({
   origin: 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
