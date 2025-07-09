@@ -10,7 +10,7 @@ const ChatApp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = 'http://localhost:3000';
+  const API_BASE_URL = 'http://44.211.144.226:3000';
 
   const handleSingleChat = async () => {
     if (!singleMessage.trim()) return;
