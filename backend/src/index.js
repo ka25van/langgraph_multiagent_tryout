@@ -6,7 +6,11 @@ import cors from 'cors';
 
 // Middleware
 server.use(express.json());
-server.use(cors())
+server.use(cors({
+  origin: 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
 server.use(express.urlencoded({ extended: true }));
 
 // Basic route
