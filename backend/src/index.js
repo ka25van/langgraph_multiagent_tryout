@@ -3,22 +3,24 @@ import app from './graph.js';
 const server = express();
 const PORT =  3000;
 import cors from 'cors';
-
-// Middleware
-server.use(express.json());
-
+const allowedOrigin = 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com';
 server.use(cors({
-  origin: 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com',
+  origin: allowedOrigin,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
 
 //Add this for preflight
 server.options('*', cors({
-  origin: 'http://langgraph-frontend-kaverappa.s3-website-us-east-1.amazonaws.com',
+  origin: allowedOrigin,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
+
+// Middleware
+server.use(express.json());
+
+
 server.use(express.urlencoded({ extended: true }));
 
 // Basic route
