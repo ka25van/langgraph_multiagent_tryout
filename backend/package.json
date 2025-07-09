@@ -18,7 +18,7 @@
     "@langchain/ollama": "^0.2.3",
     "axios": "^1.10.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^4.21.2",
     "langchain": "^0.3.29",
     "winston": "^3.17.0"
   },
