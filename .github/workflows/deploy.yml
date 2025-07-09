@@ -5,6 +5,9 @@ on:
     branches: [master]
 
 jobs:
+  # ------------------------------------------------
+  # 1. Frontend: Build React App and Deploy to S3
+  # ------------------------------------------------
   frontend:
     name: Deploy Frontend to S3
     runs-on: ubuntu-latest
@@ -37,34 +40,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SOURCE_DIR: "frontend/build"
 
-  backend:
-    name: Deploy Backend to EC2
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Zip backend files
-        run: zip -r backend.zip .
-
-      - name: Copy to EC2
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
-          scp -o StrictHostKeyChecking=no -i key.pem backend.zip ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/
-
-      - name: SSH and deploy
-        run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            unzip -o backend.zip -d backend
-            cd backend
-            npm install
-          EOF
-
+  # ------------------------------------------------
+  # 2. Dockerize Backend and Push to Docker Hub
+  # ------------------------------------------------
   dockerize-backend:
     name: Dockerize & Push Backend to Docker Hub
     runs-on: ubuntu-latest
@@ -89,7 +67,29 @@ jobs:
         run: |
           docker build -t kaverappa25/langgraph-backend:latest .
           docker push kaverappa25/langgraph-backend:latest
-    
-  
-          
 
+  # ------------------------------------------------
+  # 3. Deploy Backend to EC2 via Docker
+  # ------------------------------------------------
+  backend:
+    name: Deploy Backend via Docker on EC2
+    runs-on: ubuntu-latest
+    needs: dockerize-backend #Runs only after docker image is created
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: SSH to EC2 and run Docker container
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            docker pull kaverappa25/langgraph-backend:latest
+            docker stop langgraph-backend || true
+            docker rm langgraph-backend || true
+            docker run -d --name langgraph-backend -p 3000:3000 --restart unless-stopped kaverappa25/langgraph-backend:latest
+          EOF
